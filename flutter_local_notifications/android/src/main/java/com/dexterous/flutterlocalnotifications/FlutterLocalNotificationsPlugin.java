@@ -32,7 +32,6 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,6 +40,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+
 
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
@@ -1270,16 +1270,16 @@ public class FlutterLocalNotificationsPlugin
 
   private  static void  cancel(Context context, NotificationDetails details){
     Intent intent = new Intent(context, ScheduledNotificationReceiver.class);
-    PendingIntent pendingIntent = getBroadcastPendingIntent(context, notificationDetails.id, intent);
+    PendingIntent pendingIntent = getBroadcastPendingIntent(context, details.id, intent);
     AlarmManager alarmManager = getAlarmManager(context);
     alarmManager.cancel(pendingIntent);
     NotificationManagerCompat notificationManager = getNotificationManager(context);
-    if (notificationDetails.tag == null) {
-      notificationManager.cancel(notificationDetails.id);
+    if (details.tag == null) {
+      notificationManager.cancel(details.id);
     } else {
-      notificationManager.cancel(notificationDetails.tag, notificationDetails.id);
+      notificationManager.cancel(details.tag, details.id);
     }
-    removeNotificationFromCache(context, notificationDetails.id);
+    removeNotificationFromCache(context, details.id);
   }
 
   private static void zonedScheduleNextNotification(
