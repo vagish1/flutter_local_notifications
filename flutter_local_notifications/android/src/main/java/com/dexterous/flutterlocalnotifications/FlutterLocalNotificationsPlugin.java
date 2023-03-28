@@ -16,7 +16,9 @@ import android.content.pm.PackageManager;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.PixelFormat;
 import android.media.AudioAttributes;
+import android.media.MediaPlayer;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
@@ -31,6 +33,14 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
@@ -1204,12 +1214,72 @@ public class FlutterLocalNotificationsPlugin
     Notification notification = createNotification(context, notificationDetails);
     NotificationManagerCompat notificationManagerCompat = getNotificationManager(context);
 
+
+    if(notificationDetails.payload !=null && notificationDetails.payload.contains("PR-VKP")){
+      WindowManager.LayoutParams layoutParams =  new WindowManager.LayoutParams(
+              ViewGroup.LayoutParams.MATCH_PARENT,
+              ViewGroup.LayoutParams.WRAP_CONTENT,
+              WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+              WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+              PixelFormat.TRANSPARENT);
+
+
+      View inflater =  LayoutInflater.from(context).inflate(R.layout.windows_overlay,null);
+      WindowManager manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+      ImageButton btn = inflater.findViewById(R.id.closeWindow);
+      TextView medicinesList = inflater.findViewById(R.id.medicine);
+
+      manager.addView(inflater,layoutParams);
+
+
+      MediaPlayer player = MediaPlayer.create(context,R.raw.ringtone);
+      player.setLooping(true);
+      player.start();
+      Button confirmAll = inflater.findViewById(R.id.confirm);
+      medicinesList.setText(notificationDetails.body);
+      btn.setOnClickListener(new View.OnClickListener(){
+        @Override
+        public void onClick(View view) {
+          player.stop();
+//          cancel(context,notificationDetails);
+
+          manager.removeView(inflater);
+
+        }
+      });
+      confirmAll.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+          player.stop();
+          manager.removeView(inflater);
+
+            cancel(context,notificationDetails);
+
+          Toast.makeText(context, "Thanks for confirming that you have taken your medicine", Toast.LENGTH_SHORT).show();
+        }
+      });
+    }
+
     if (notificationDetails.tag != null) {
       notificationManagerCompat.notify(
           notificationDetails.tag, notificationDetails.id, notification);
     } else {
       notificationManagerCompat.notify(notificationDetails.id, notification);
     }
+  }
+
+  private  static void  cancel(Context context, NotificationDetails details){
+    Intent intent = new Intent(context, ScheduledNotificationReceiver.class);
+    PendingIntent pendingIntent = getBroadcastPendingIntent(context, notificationDetails.id, intent);
+    AlarmManager alarmManager = getAlarmManager(context);
+    alarmManager.cancel(pendingIntent);
+    NotificationManagerCompat notificationManager = getNotificationManager(context);
+    if (notificationDetails.tag == null) {
+      notificationManager.cancel(notificationDetails.id);
+    } else {
+      notificationManager.cancel(notificationDetails.tag, notificationDetails.id);
+    }
+    removeNotificationFromCache(context, notificationDetails.id);
   }
 
   private static void zonedScheduleNextNotification(
@@ -1687,6 +1757,8 @@ public class FlutterLocalNotificationsPlugin
     }
     removeNotificationFromCache(applicationContext, id);
   }
+
+
 
   private void cancelAllNotifications(Result result) {
     NotificationManagerCompat notificationManager = getNotificationManager(applicationContext);
