@@ -1238,7 +1238,7 @@ public class FlutterLocalNotificationsPlugin
       player.start();
       Button confirmAll = inflater.findViewById(R.id.confirm);
       if(notificationDetails.body.isEmpty()){
-        TextView medicationTitle = inflater.findViewById(R.id.constraint);
+        TextView medicationTitle = inflater.findViewById(R.id.textView5);
         medicationTitle.setVisibility(View.INVISIBLE);
         medicinesList.setVisibility(View.INVISIBLE);
       }else {
