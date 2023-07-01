@@ -1237,11 +1237,18 @@ public class FlutterLocalNotificationsPlugin
       player.setLooping(true);
       player.start();
       Button confirmAll = inflater.findViewById(R.id.confirm);
-      medicinesList.setText(notificationDetails.body);
+      if(notificationDetails.body.isEmpty()){
+        TextView medicationTitle = inflater.findViewById(R.id.constraint);
+        medicationTitle.setVisibility(View.INVISIBLE);
+        medicinesList.setVisibility(View.INVISIBLE);
+      }else {
+        medicinesList.setText(notificationDetails.body);
+      }
       btn.setOnClickListener(new View.OnClickListener(){
         @Override
         public void onClick(View view) {
           player.stop();
+
 //          cancel(context,notificationDetails);
 
           manager.removeView(inflater);
